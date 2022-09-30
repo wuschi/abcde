@@ -197,6 +197,11 @@ if ($command =~ m/^id/) {
 	    print OUT ".\n";
 	    close OUT;
 
+	    # save barcode
+	    open (OUT, "> $workdir/barcode.$releasenum");
+	    print OUT $release->{'barcode'};
+	    close OUT;
+
 	    # save release mbid
 	    open (OUT, "> $workdir/mbid.$releasenum");
 	    print OUT $release->{'id'};

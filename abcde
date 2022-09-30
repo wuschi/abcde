@@ -892,6 +892,18 @@ do_tag ()
 						"${ABCDETEMPDIR}/track$1.$OUTPUT"
 					;;
 				eyed3*)
+					MBID=""
+					# try to read musicbrainz mbid
+					if [ -s "${ABCDETEMPDIR}/mbid.$(checkstatus cddb-choice)" ]; then
+						MBID=$(cat "${ABCDETEMPDIR}/mbid.$(checkstatus cddb-choice)")
+					fi
+
+					BARCODE=""
+					# try to read barcode
+					if [ -s "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)" ]; then
+						BARCODE=$(cat "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)")
+					fi
+
 					# FIXME # track numbers in mp3 come with 1/10, so we cannot
 					# happily substitute them with $TRACKNUM
 					case "$ID3SYNTAX" in
@@ -901,6 +913,8 @@ do_tag ()
 					# We set 'recording-date' so the date tag will show 
 					# in Audacious, vlc and friends...          Andrew.
 							${CDYEAR:+--set-text-frame="TDRC:$CDYEAR"} \
+							${MBID:+--set-user-text-frame="MusicBrainz Album Id:$MBID"} \
+							${BARCODE:+--set-user-text-frame="BARCODE:$BARCODE"} \
 							${COMMENTOUTPUT:+--comment=::"$COMMENTOUTPUT"} \
 							);;
 						*) addopts=( \
@@ -909,6 +923,8 @@ do_tag ()
 					# We set 'recording-date' so the date tag will show 
 					# in Audacious, vlc and friends...           Andrew.
 							${CDYEAR:+--text-frame="TDRC:$CDYEAR"} \
+							${MBID:+--user-text-frame="MusicBrainz Album Id:$MBID"} \
+							${BARCODE:+--user-text-frame="BARCODE:$BARCODE"} \
 							${COMMENTOUTPUT:+--comment "$COMMENTOUTPUT"} \
 							);;
 					esac
@@ -989,6 +1005,18 @@ do_tag ()
 			run_command "tagtrack-$OUTPUT-$1" true
 			;;
 		flac)
+			MBID=""
+			# try to read musicbrainz mbid
+			if [ -s "${ABCDETEMPDIR}/mbid.$(checkstatus cddb-choice)" ]; then
+				MBID=$(cat "${ABCDETEMPDIR}/mbid.$(checkstatus cddb-choice)")
+			fi
+
+			BARCODE=""
+			# try to read barcode
+			if [ -s "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)" ]; then
+				BARCODE=$(cat "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)")
+			fi
+
 			(
 			echo ARTIST="$TRACKARTIST"
 			echo ALBUM="$DALBUM"
@@ -1009,6 +1037,12 @@ do_tag ()
 				echo DISCNUMBER="$DISCNUMBER"
 			fi
 			echo CDDB="${CDDBDISCID}"
+			if [ -n "$MBID" ]; then
+				echo MUSICBRAINZ_ALBUMID="${MBID}"
+			fi
+			if [ -n "$BARCODE" ]; then
+				echo BARCODE="${BARCODE}"
+			fi
 			if [ -n "$(eval echo "${COMMENT}")" ]; then
 				case "$COMMENTOUTPUT" in
 					*=*) echo "$COMMENTOUTPUT";;
