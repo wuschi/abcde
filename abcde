@@ -904,6 +904,12 @@ do_tag ()
 						BARCODE=$(cat "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)")
 					fi
 
+					MBDISCID=""
+					# try to get musicbrainz discid
+					if [ -s "${ABCDETEMPDIR}"/mbdiscid ];then
+						MBDISCID=$(cat "${ABCDETEMPDIR}"/mbdiscid | cut -d " " -f 1)
+					fi
+
 					# FIXME # track numbers in mp3 come with 1/10, so we cannot
 					# happily substitute them with $TRACKNUM
 					case "$ID3SYNTAX" in
@@ -914,6 +920,7 @@ do_tag ()
 					# in Audacious, vlc and friends...          Andrew.
 							${CDYEAR:+--set-text-frame="TDRC:$CDYEAR"} \
 							${MBID:+--set-user-text-frame="MusicBrainz Album Id:$MBID"} \
+							${MBDISCID:+--set-user-text-frame="MusicBrainz Disc Id:$MBDISCID"} \
 							${BARCODE:+--set-user-text-frame="BARCODE:$BARCODE"} \
 							${COMMENTOUTPUT:+--comment=::"$COMMENTOUTPUT"} \
 							);;
@@ -924,6 +931,7 @@ do_tag ()
 					# in Audacious, vlc and friends...           Andrew.
 							${CDYEAR:+--text-frame="TDRC:$CDYEAR"} \
 							${MBID:+--user-text-frame="MusicBrainz Album Id:$MBID"} \
+							${MBDISCID:+--user-text-frame="MusicBrainz Disc Id:$MBDISCID"} \
 							${BARCODE:+--user-text-frame="BARCODE:$BARCODE"} \
 							${COMMENTOUTPUT:+--comment "$COMMENTOUTPUT"} \
 							);;
@@ -1017,6 +1025,12 @@ do_tag ()
 				BARCODE=$(cat "${ABCDETEMPDIR}/barcode.$(checkstatus cddb-choice)")
 			fi
 
+			MBDISCID=""
+			# try to get musicbrainz discid
+			if [ -s "${ABCDETEMPDIR}"/mbdiscid ];then
+				MBDISCID=$(cat "${ABCDETEMPDIR}"/mbdiscid | cut -d " " -f 1)
+			fi
+
 			(
 			echo ARTIST="$TRACKARTIST"
 			echo ALBUM="$DALBUM"
@@ -1039,6 +1053,9 @@ do_tag ()
 			echo CDDB="${CDDBDISCID}"
 			if [ -n "$MBID" ]; then
 				echo MUSICBRAINZ_ALBUMID="${MBID}"
+			fi
+			if [ -n "$MBDISCID" ]; then
+				echo MUSICBRAINZ_DISCID="${MBDISCID}"
 			fi
 			if [ -n "$BARCODE" ]; then
 				echo BARCODE="${BARCODE}"
@@ -5217,8 +5234,11 @@ if [ "$DOCDDB" = "y" ]; then
 				for X in $(f_seq_row 1 $NUM_CDDB_MATCHES)
 				do
 					ATITLE=$(grep -a -e '^DTITLE=' "${ABCDETEMPDIR}/cddbread.$X" | cut -c8- | tr -d \\r\\n)
+					DYEAR=$(grep -a -e '^DYEAR=' "${ABCDETEMPDIR}/cddbread.$X" | cut -c7- | tr -d \\r\\n)
+					DEXTD=$(grep -a -e '^EXTD=' "${ABCDETEMPDIR}/cddbread.$X" | cut -c6- | tr -d \\r\\n)
 					SOURCE=$(cat "${ABCDETEMPDIR}/datasource.$X")
-					echo "#$X ($SOURCE): ---- ${ATITLE} ----" >> "${ABCDETEMPDIR}/cddbchoices"
+					BARCODE=$(cat "${ABCDETEMPDIR}/barcode.$X")
+					echo "#$X ($SOURCE): ---- ${ATITLE} ${DYEAR:+($DYEAR) }${DEXTD:+($DEXTD) }----${BARCODE:+ (Barcode: $BARCODE) ----}" >> "${ABCDETEMPDIR}/cddbchoices"
                     for TRACK in $(f_seq_row 1 $TRACKS)
 					do
                         echo "$TRACK:" "$(grep -a ^TTITLE$(($TRACK - 1))= "${ABCDETEMPDIR}/cddbread.$X" | cut -f2- -d= | tr -d \\r\\n)" >> "${ABCDETEMPDIR}/cddbchoices"
