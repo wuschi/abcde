@@ -189,7 +189,12 @@ if ($command =~ m/^id/) {
 		}
 	    }
 
-	    print OUT "EXTD=\n";
+	    my $extd = "$release->{'status'})";
+	    $extd = "($release->{'country'}" . ($extd ne ")" ? ", " : "") . $extd;
+	    $extd = "$release->{'disambiguation'} " . ($extd ne "()" ? $extd : "");
+	    $extd =~ s/^\s+//;
+
+	    print OUT "EXTD=$extd\n";
 	    for (my $i = 0; $i < scalar(@tracks); $i++) {
 		printf OUT "EXTT%d=\n", $i;
 	    }
